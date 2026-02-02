@@ -1,0 +1,79 @@
+<resources>
+    <string name="app_name" translatable="false">baggup</string>
+    <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
+    <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
+    <string name="nav_header_title" translatable="false">BAGGUP</string>
+    <string name="nav_header_subtitle">make a backup easily</string>
+    <string name="nav_header_desc" translatable="false">Navigation header</string>
+    <string name="action_settings">Settings</string>
+    <string name="menu_home">Home</string>
+    <string name="menu_folder">Select Folder</string>
+    <string name="menu_mime">Select Mime</string>
+    <string name="placeholder" translatable="false">placeholder</string>
+    <string name="title_mime_fragment">mime type</string>
+    <string name="title_folder_fragment">Folder</string>
+    <string name="description_folder_fragment">Which folders should be backed up?</string>
+    <string name="description_mime_fragment">Which file types should be backed up?</string>
+    <string name="home_fragment_desription1">This app offers data backup via your home Wi-Fi network. You can select individual folders and different types of files.</string>
+    <string name="home_fragment_desription2">The following folders are backed up:</string>
+    <string name="home_fragment_desription3">The following file types are backed up:</string>
+    <string name="dialog_title_description">Description</string>
+    <string name="dialog_title_settings">Settings</string>
+    <string name="dialog_title_over_this">over this app</string>
+    <string name="dialog_title_configuration">Security</string>
+    <string name="close">close</string>
+    <string name="copyright_links"><a href="https://github.com/Klaus-Thaler">About the app on Github.</a>\n<a href="https://liberapay.com/KlausThaler">Donation for this work.</a></string>
+    <string name="DialogDescriptionmainText">This app can offer a complete backup or one focused on individual directories and file types.\n\nThe data is available via Wi-Fi. Access is password protected\n\nOn Linux systems, the data can be accessed using a daemon script via Curl or Wget.\n\nFurther information is available on Git-Hub.</string>
+    <string name="dialogloginname">login:</string>
+    <string name="passworteingabe">password:</string>
+    <string name="save">save</string>
+    <string name="WarnNoLogin">No login created yet!</string>
+    <string name="WarnNoPasswd">No password created yet!</string>
+    <string name="notificationSave">it\'s save</string>
+    <string name="backupNow">Es kann gesichert werden.</string>
+    <string name="backupStoped">Der Webserver ist angehalten.</string>
+    <string name="loginZuKurz">login zu kurz</string>
+    <string name="passwortZuKurz">zu kurz mind 1 klein 1 gross 1 sonder min 4</string>
+    <string name="dialogTextClearCache">Clear Cache</string>
+    <string name="x">X</string>
+    <string name="LginAndPasswortNotValid">"Login und/oder Passwort sind nicht valid. "</string>
+    <string name="repeat_passwort">repeat the entry</string>
+    <string name="passwords_do_not_match">Passwords do not match.</string>
+    <string name="ipaddress">ipAddress</string>
+    <string name="port">port</string>
+    <string name="no_wifi">kein Wlan</string>
+    <string name="dialog_error_handling">Error</string>
+    <string name="fragment_home_checkbox1">backup all</string>
+    <string name="DialogSettingsMainText">Set up the access data for accessing the web server here.\n\nThe login must be at least 6 characters long.\n\nThe password must be at least 6 characters long and contain at least one number.</string>
+    <!-- Preference Titles -->
+    <string name="messages_header" translatable="false">Messages</string>
+    <string name="sync_header" translatable="false">Sync</string>
+
+    <!-- Messages Preferences -->
+    <string name="signature_title" translatable="false">Your signature</string>
+    <string name="reply_title" translatable="false">Default reply action</string>
+
+    <!-- Sync Preferences -->
+    <string name="menu_settings">Settings</string>
+    <string name="yourLoginName">your login</string>
+    <string name="yourPassWord">your password</string>
+    <string name="yourPortNumber">your port number</string>
+    <string name="messages_login">Login-Data</string>
+    <string name="messages_wlan">Web-Data</string>
+    <string name="messages_available_WiFi_networks" translatable="false">available Wi-Fi networks</string>
+    <string name="attachment_summary_syncAllDirs_off">Die Verzeichnisse können einzeln ausgewählt werden</string>
+    <string name="attachment_summary_syncAllDirs_on">Alle möglichen Verzeichnisse werden angeboten.</string>
+    <string name="attachment_summary_syncAllTypes_on">Alle möglichen Datei-Typen werden angeboten.</string>
+    <string name="attachment_summary_syncAllTypes_off">Die Datei-Typen können einzeln ausgewählt werden.</string>
+    <string name="sync_AllDirs">Angebot der Verzeichnisse</string>
+    <string name="sync_AllTypes">Angebot nach Datei-Typen</string>
+    <string name="endblock_title">STAND WITH UKRAINE</string>
+    <string name="endblock_summary" translatable="false">" \n "</string>
+    <string name="customProgress_noDataTransfer">No Data Transfer. Pause.</string>
+    <string name="customProgress_DataSize">Es stehen Daten bereit.</string>
+    <string name="availableFiles">Files (Size): </string>
+    <string name="string">File(s)</string>
+    <string name="unassigned">unassigned</string>
+    <string name="nothing_selected">nothing selected</string>
+
+</resources>

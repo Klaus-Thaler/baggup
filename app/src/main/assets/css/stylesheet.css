@@ -1,0 +1,19 @@
+#head { }
+#gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15em, 1fr));
+    gap: 1em;
+    }
+#gallery > figcaption {
+  grid-column: 1 / -1;
+    }
+h1      { color:blue; margin:10px; }
+h2      { color:gray; margin:10px; }
+p       { margin:10px; color:red }
+.main   { margin: 20px auto; text-align:center; }
+.p_ex   { margin: 20px auto; text-align:center; }
+.button { margin: 3px 12px 3px 12px; }
+li      { color:gray }
+.sort   { margin:10px 25px 0 25px; padding:5px 30px 5px 30px; }
+#img_center { width:400px; height:400px; border:1px; }
+.thumb  { padding:10px; margin: 10px; border: solid 1px red }

@@ -1,0 +1,76 @@
+#!/bin/bash
+OLDIFS=$IFS
+IFS= 
+IFS=$'\n'
+IFS=$(echo -en "\n\b")
+
+# bash farben https://checkmk.com/de/linux-wissen/farbige-ausgabe-auf-der-konsole
+NORMAL="\033[0;39m"
+BOLD="\033[1m"
+UNDER="\033[4m"
+BLINK="\033[5m"
+RED="\033[31m"
+GREEN="\033[32m"
+YELLOW="\033[33m"
+BLUE="\033[34m"
+LILA="\033[35m"
+CYAN="\033[36m"
+RE="\033[0m"
+
+addr="192.168.188.50:8000"
+#addr="192.168.188.136:8000"
+#addr="192.168.188.78:8000"
+
+
+# ftp      addr="ftp://192.168.188.78:2121"
+backupDir="$HOME/MobilBackUps/Wget-BackUp"
+login="Login"
+passwd="Login3"
+
+storage="/storage/self/primary"
+#storage="/storage/emulated/0"
+backupDirString="$backupDir/$addr/$storage"
+mkdir -p "$backupDirString"
+
+## file liste speichern
+# da der nanohttp von android nicht immer den timestamp liefert, 
+# wird erst auf dem android eine liste mit dem timestamp erstellt und übertragen
+#
+
+# als deamon
+#setsid ./wgetMobil.sh >/dev/null 2>&1 < /dev/null &
+
+while true; do
+	curl --request POST --data "login=$login&passwd=$passwd" "http://$addr/$storage/.baggup" --output "$backupDirString/.baggup"
+	
+	while IFS= read line; do 
+		#echo $line
+		# kommentare, die mit # anfangen nicht lesen
+		if [[ ${line:0:1} != '#' ]]; then 
+			fileName="$(echo $line | cut -d ' ' -f7-)"
+			lastMod=$(echo "$line" | cut -c-34 | date --file=- +"%Y-%m-%d %H:%M:%S")
+			#echo -e "\n #################\n $fileName \t $lastMod \n ########### \n"
+			# save only new files
+			if [[ ! -f  "$fileName" ]]; then
+				echo -ne "$YELLOW $(basename $fileName) $RE \r"
+				#curl --request POST --data "login=$login&passwd=$passwd" -o "$backupDir/$addr/$fileName" --create-dirs -C - "http://$addr/$fileName"
+				#curl -u "$login:$passwd" -o "$backupDir/$addr/$fileName" --create-dirs -C - "http://$addr/$fileName"
+				# exsample: touch -m -d '2015-01-01 01:01:01.123456789' "$backupDir/$addr/$fileName"
+				
+				# neu ueberschreiben "LC_ALL=C ..." weil ansonsten in deutsch angezeigt wird
+				#echo "$(LC_ALL=C date -r $backupDir/$addr$fileName | LC_ALL=C date --file=- +'%Y-%m-%d %H:%M:%S') - $lastMod"
+				
+				if [[ $(LC_ALL=C date -r $backupDir/$addr$fileName | LC_ALL=C date --file=- +'%Y-%m-%d %H:%M:%S') < $lastMod ]]; then
+					echo -e "$GREEN $fileName $RE "
+					curl --request POST --data "login=$login&passwd=$passwd" -o "$backupDir/$addr/$fileName" --create-dirs -C - "http://$addr/$fileName"
+					touch -m -d "$lastMod" "$backupDir/$addr/$fileName"
+				fi
+			fi
+			echo -ne "                                                 \r"
+		fi
+	done < "$backupDirString/.baggup"
+	echo "###################  ENDE  ######################"
+	sleep 10
+done
+
+exit 0

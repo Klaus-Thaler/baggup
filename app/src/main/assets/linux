@@ -1,0 +1,6 @@
+Mit Wget kann auf einem Linux-Rechner die Webseite mit allen Daten übertragen werden.
+Der Befehl lädt in den gleichen Ordner.
+
+wget -N -r -X -c --post-data "login=...&passwd=..." 192.168....:8385
+
+Mehr Infos hier: https://man7.org/linux/man-pages/man1/wget.1.html
