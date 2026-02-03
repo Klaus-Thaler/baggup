@@ -2,7 +2,9 @@ package de.thaler.baggup;
 
 import static de.thaler.baggup.MainActivity.LoginLen;
 import static de.thaler.baggup.MainActivity.PasswordLen;
+import static de.thaler.baggup.MainActivity.defaultPort;
 import static de.thaler.baggup.MainActivity.mainActivity;
+import static de.thaler.baggup.MainActivity.mPreference;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
@@ -18,19 +20,18 @@ import android.widget.TextView;
 
 import java.util.Objects;
 
+import de.thaler.baggup.ui.home.HomeViewModel;
 import de.thaler.baggup.utils.Helper;
 
 public class SettingDialogs {
     private static final String TAG = "myLOG SettingDialogs";
     Context context;
     Dialog dialog;
-    SharedPreferences mPreference;
 
     public SettingDialogs(Context context) {
         this.context = context;
         dialog = new Dialog(context);
 
-        mPreference = MainActivity.appContext.getSharedPreferences("MyPref", 0);
         // create dialog
         //dialog.setContentView(R.layout.dialog_settings);
         Objects.requireNonNull(dialog.getWindow())
@@ -109,7 +110,7 @@ public class SettingDialogs {
 
         // TODO: 27.01.26 port änderbar!!!
         TextView portEditText = dialog.findViewById(R.id.editTextPort);
-        portEditText.setText(String.valueOf(mPreference.getInt("port", 8000)));
+        portEditText.setText(String.valueOf(mPreference.getInt("port", defaultPort)));
 
         // text srollable
         TextView mainText = dialog.findViewById(R.id.dialog_text);
@@ -134,7 +135,7 @@ public class SettingDialogs {
                     Helper.showToast(context, context.getString(R.string.loginZuKurz),2);
                 }
                 Helper.showToast(context, "pw: " +  passwdEditText1.getText().toString(), 2);
-                if (Helper.isValidPassword(String.valueOf(passwdEditText1.getText().toString()), PasswordLen)) {
+                if (Helper.isValidPassword(passwdEditText1.getText().toString(), PasswordLen)) {
                     editor.putString("password", passwdEditText1.getText().toString()).apply();
                     //Helper.showToast(context, context.getString(R.string.notificationSave), 1);
                     pwReady = true;
@@ -171,10 +172,8 @@ public class SettingDialogs {
 
                 }
                 if (loginReady && pwReady && portReady) {
-                    final TextView IPViewNumber = MainActivity.mainActivity.findViewById(R.id.home_fragment_ip_number);
-                    IPViewNumber.setText(String.valueOf(Helper.showIPAddress(context)
-                            + ":" + portEditText.getText()));
-
+                    HomeViewModel.IPViewNumber.setValue(Helper.showIPAddress(context));
+                    HomeViewModel.IPPort.setValue(String.valueOf(mPreference.getInt("port", defaultPort)));
                     dialog.dismiss();
                 }
             }

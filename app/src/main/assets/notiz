@@ -1,0 +1,89 @@
+#!/bin/bash
+OLDIFS=$IFS
+IFS= 
+IFS=$'\n'
+IFS=$(echo -en "\n\b")
+
+# start the app
+# adb shell /system/bin/am start -n de.thaler.baggup/.MainActivity
+
+
+# bash farben https://checkmk.com/de/linux-wissen/farbige-ausgabe-auf-der-konsole
+NORMAL="\033[0;39m"
+BOLD="\033[1m"
+UNDER="\033[4m"
+BLINK="\033[5m"
+RED="\033[31m"
+GREEN="\033[32m"
+YELLOW="\033[33m"
+BLUE="\033[34m"
+LILA="\033[35m"
+CYAN="\033[36m"
+RE="\033[0m"
+
+login="Login33"
+passwd="Login33"
+
+addr="192.168.188.50:8000"
+#addr="192.168.188.136:8000"
+#addr="192.168.188.78:8000"
+
+#storage="/storage/self/primary"
+storage="/storage/emulated/0"
+backupDir="$HOME/MobilBackUps"
+backupDirString="$backupDir/$addr"
+baggupLoadFile="$backupDirString$storage/.baggup"
+
+#echo -e " $backupDir \n $addr \n $storage \n $backupDirString \n $baggupLoadFile \n http://$addr/$storage/.baggup"; exit;
+
+mkdir -p "$backupDirString/$storage";
+
+## file liste speichern
+# da der nanohttp von android nicht immer den timestamp liefert,
+# wird erst auf dem android eine liste mit dem timestamp erstellt und übertragen
+#
+
+# als deamon
+#setsid ./wgetMobil.sh >/dev/null 2>&1 < /dev/null &
+
+ls -la $baggupLoadFile
+
+
+while true; do
+	# backupload file laden. hier steht, was neu ist. Dient auch um im Mobil einen Kontakt abzubilden
+	curl --request POST --data "login=$login&passwd=$passwd" "http://$addr/$storage/.baggup" --output "$baggupLoadFile"
+
+	while IFS= read line; do
+		#echo $line
+		# kommentare, die mit # anfangen nicht lesen
+		if [[ ${line:0:1} == '#' ]]; then    # Kommentare auslassen
+			continue;
+		fi
+		fileName="$(echo $line | cut -d ' ' -f7-)"
+		lastMod=$(echo "$line" | cut -c-34 | date --file=- +"%Y-%m-%d %H:%M:%S")
+		#echo -e "\n #################\n $fileName \t $lastMod \n ############################# \n"
+		# save only new files
+		if [[ ! -f  "$fileName" ]]; then
+			echo -ne "$YELLOW $(basename $fileName) $RE \r"
+			#curl --request POST --data "login=$login&passwd=$passwd" -o "$backupDir/$addr/$fileName" --create-dirs -C - "http://$addr/$fileName"
+			#curl -u "$login:$passwd" -o "$backupDir/$addr/$fileName" --create-dirs -C - "http://$addr/$fileName"
+			# exsample: touch -m -d '2015-01-01 01:01:01.123456789' "$backupDir/$addr/$fileName"
+
+			# neu ueberschreiben "LC_ALL=C ..." weil ansonsten in deutsch angezeigt wird
+			#echo "$(LC_ALL=C date -r $backupDir/$addr$fileName | LC_ALL=C date --file=- +'%Y-%m-%d %H:%M:%S') - $lastMod"
+
+			if [[ $(LC_ALL=C date -r $backupDir/$addr$fileName | LC_ALL=C date --file=- +'%Y-%m-%d %H:%M:%S') < $lastMod ]]; then
+				echo -e "$GREEN $fileName $RE "
+				curl --request POST --data "login=$login&passwd=$passwd" -o "$backupDirString/$fileName" --create-dirs -C - "http://$addr/$fileName"
+				touch -m -d "$lastMod" "$backupDir/$addr/$fileName"
+			fi
+		fi
+		echo -ne "                                                 \r"
+	done < "$baggupLoadFile"
+
+	echo "###################  ENDE  ##################################################"
+	echo "$(find $backupDirString -type f | wc -l) Files gesichert."
+	sleep 10
+done
+
+exit 0

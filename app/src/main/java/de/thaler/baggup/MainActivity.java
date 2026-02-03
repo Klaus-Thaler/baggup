@@ -1,8 +1,5 @@
 package de.thaler.baggup;
 
-import static android.Manifest.permission.ACCESS_FINE_LOCATION;
-import static android.Manifest.permission.CAMERA;
-
 import static de.thaler.baggup.R.id.nav_host_fragment_content_main;
 
 import android.annotation.SuppressLint;
@@ -11,7 +8,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -24,7 +20,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -45,8 +40,6 @@ import de.thaler.baggup.utils.Helper;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "myLOG Main";
-    private static final int PERMISSION_REQUEST_CODE = 100;
-
     public static MainActivity mainActivity;
     public static Context appContext;
 
@@ -55,12 +48,14 @@ public class MainActivity extends AppCompatActivity {
     public static String baggupFileName = ".baggup";
     public httpServer mHttpServer;
     public static File rootFile = new File("/storage/emulated/0");
+    public static SharedPreferences mPreference;
     public FileSelektion fileSelektion;
     private AppBarConfiguration mAppBarConfiguration;
     private FloatingActionButton fab;
     private ActivityMainBinding binding;
     public static int LoginLen = 6;
     public static int PasswordLen = 6;
+    public static int defaultPort = 8000;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -74,20 +69,9 @@ public class MainActivity extends AppCompatActivity {
         mainActivity = this;
         appContext = getApplicationContext();
 
-        SharedPreferences mPreference = MainActivity.appContext.getSharedPreferences("MyPref", 0);
-        int port = mPreference.getInt("port", 8000);
-        mHttpServer = new httpServer(port);
-
-        // search files
-        fileSelektion = new FileSelektion(this);
-        Log.d(TAG, "size " + fileSelektion.fileList().size());
-        // check all prefs
-        Log.i(TAG, "getDefaultPref: " + fileSelektion.fileList());
-
-
         // grant all permissions
         GrantPermissions grant = new GrantPermissions(this);
-        grant.checkStoragePermissions();
+        grant.checkAll();
         //String los = grant.checkWifiName();
 
         // Get the device policy manager and the admin component
@@ -102,14 +86,21 @@ public class MainActivity extends AppCompatActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN); // kein wischen
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // immer an
 
+        mPreference = MainActivity.appContext.getSharedPreferences("MyPref", 0);
 
-        if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION, CAMERA}, PERMISSION_REQUEST_CODE);
-        }
+        // TODO: 02.02.26  nur für tests
+        mPreference.edit().putString("login", "Login33").apply();
+        mPreference.edit().putString("password", "Login33").apply();
+        // todo end
 
-        TextView textViewAppBarInfo1 = (TextView) MainActivity.mainActivity.findViewById(R.id.customProgressInfo1);
-        textViewAppBarInfo1.setText(MainActivity.mainActivity.getString(R.string.availableFiles)
-                + fileSelektion.fileList().size());
+        int port = mPreference.getInt("port", defaultPort);
+        mHttpServer = new httpServer(port);
+
+        // search files
+        fileSelektion = new FileSelektion(this);
+        Log.d(TAG, "size " + fileSelektion.fileList().size());
+        // check all prefs
+        Log.i(TAG, "getDefaultPref: " + fileSelektion.fileList());
 
         MimeType = new ArrayList<>();
         MimeType.add("image");
@@ -235,7 +226,107 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        
         appContext = getApplicationContext();
     }
+
+    /*
+    // https://mohitsingh2002.medium.com/background-location-permission-in-android-11-and-above-1ab7399ec861
+    private void checkPermission() {
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            // Fine Location permission is granted
+            // Check if current android version >= 11, if >= 11 check for Background Location permission
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    // Background Location Permission is granted so do your work here
+                } else {
+                    // Ask for Background Location Permission
+                    askPermissionForBackgroundUsage();
+                }
+            }
+        } else {
+            // Fine Location Permission is not granted so ask for permission
+            askForLocationPermission();
+        }
+    }
+
+    private void askForLocationPermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Permission Needed!")
+                    .setMessage("Location Permission Needed!")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            ActivityCompat.requestPermissions(MainActivity.this,
+                                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_CODE);
+                        }
+                    })
+                    .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // Permission is denied by the user
+                        }
+                    })
+                    .create().show();
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_CODE);
+        }
+    }
+
+    private void askPermissionForBackgroundUsage() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Permission Needed!")
+                    .setMessage("Background Location Permission Needed!, tap \"Allow all time in the next screen\"")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            ActivityCompat.requestPermissions(MainActivity.this,
+                                    new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, BACKGROUND_LOCATION_PERMISSION_CODE);
+                        }
+                    })
+                    .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // User declined for Background Location Permission.
+                        }
+                    })
+                    .create().show();
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, BACKGROUND_LOCATION_PERMISSION_CODE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == LOCATION_PERMISSION_CODE) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // User granted location permission
+                // Now check if android version >= 11, if >= 11 check for Background Location Permission
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                        // Background Location Permission is granted so do your work here
+                    } else {
+                        // Ask for Background Location Permission
+                        askPermissionForBackgroundUsage();
+                    }
+                }
+            } else {
+                // User denied location permission
+            }
+        } else if (requestCode == BACKGROUND_LOCATION_PERMISSION_CODE) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // User granted for Background Location Permission.
+            } else {
+                // User declined for Background Location Permission.
+            }
+        }
+
+    }
+
+     */
 }

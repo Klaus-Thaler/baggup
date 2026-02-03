@@ -117,9 +117,6 @@ public class Helper {
     private static final String TAG = "myLog Helper.java";
     public static Handler mBackgroundHandler;
     public static HandlerThread mBackgroundThread;
-
-    private static String tempString = "";
-
     /**
      * <p>it is a toast message</p>
      *     <li> 1 = normal custom</li>
@@ -206,7 +203,7 @@ public class Helper {
 
     /**
      *
-     * @param context
+     * @param context Context
      * @return the Name of actually WiFi
      */
     public static String getDefaultWifiName(Context context) {
@@ -222,10 +219,9 @@ public class Helper {
         }
         return null;
     }
-
     /**
      *
-     * @param main
+     * @param main mainactivity
      * @return Set of all WiFi names
      */
     public static CharSequence[] getAllWifiName(MainActivity main) {

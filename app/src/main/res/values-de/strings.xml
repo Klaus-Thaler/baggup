@@ -17,7 +17,6 @@
     <string name="dialog_title_over_this">über das hier</string>
     <string name="dialog_title_configuration">Sicherheit</string>
     <string name="close">schließen</string>
-    <string name="copyright_links" translatable="false"><a href="https://github.com/Klaus-Thaler"> About this app on Github. </a>\n\n<a href="https://de.wikipedia.org/wiki/MIT-Lizenz">MIT-Lizenz</a>\n\n<a href="https://liberapay.com/KlausThaler">Donation for this work.</a></string>
     <string name="DialogDescriptionmainText">Diese App kann ein vollständiges oder auch ein auf einzelne Verzeichnisse und Dateitypen orientiertes Backup erstellen.\n\Die Daten werden im WLAN angeboten. Der Kontakt ist mit einem Passwort geschützt.\n\nAuf Linux Systemen kann mit einem Deamon Script per Curl oder Wget auf die Daten zugegriffen werden.\n\nWeitere Hinweise auf Git-Hub.</string>
     <string name="dialogloginname">Login:</string>
     <string name="passworteingabe">Passwort:</string>

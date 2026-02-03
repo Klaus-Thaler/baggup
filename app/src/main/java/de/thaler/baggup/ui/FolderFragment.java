@@ -69,7 +69,7 @@ public class FolderFragment extends PreferenceFragmentCompat {
         switchPreferenceCompat.setChecked(false);
         switchPreferenceCompat.setSummaryOff(getString(R.string.attachment_summary_syncAllDirs_off));
         switchPreferenceCompat.setSummaryOn(getString(R.string.attachment_summary_syncAllDirs_on));
-        switchPreferenceCompat.setTitle("@string/sync_AllDirs");
+        switchPreferenceCompat.setTitle(R.string.sync_AllDirs);
         inlinePrefCat.addPreference(switchPreferenceCompat);
 
         for (String s:AllDirs) {

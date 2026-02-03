@@ -68,7 +68,7 @@ public class MimeFragment extends PreferenceFragmentCompat {
         switchPreferenceCompat.setKey("syncAllTypes");
         switchPreferenceCompat.setSummaryOff(getString(R.string.attachment_summary_syncAllTypes_off));
         switchPreferenceCompat.setSummaryOn(getString(R.string.attachment_summary_syncAllTypes_on));
-        switchPreferenceCompat.setTitle("@string/sync_AllTypes");
+        switchPreferenceCompat.setTitle(R.string.sync_AllTypes);
         inlinePrefCat.addPreference(switchPreferenceCompat);
 
         for (String s:MimeType) {

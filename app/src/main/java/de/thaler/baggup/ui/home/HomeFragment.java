@@ -1,5 +1,7 @@
 package de.thaler.baggup.ui.home;
 
+import static de.thaler.baggup.MainActivity.defaultPort;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -22,13 +24,14 @@ public class HomeFragment extends Fragment {
     private FragmentHomeBinding binding;
     private Context context;
     private int port;
+    private String IPViewNameString;
 
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         this.context = context;
         SharedPreferences mPreference = context.getSharedPreferences("MyPref", 0);
-        port = mPreference.getInt("port", 8001);
+        port = mPreference.getInt("port", defaultPort);
     }
 
     @SuppressLint("SetTextI18n")
@@ -40,24 +43,25 @@ public class HomeFragment extends Fragment {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        final TextView IPViewName = binding.homeFragmentIpName;
-        homeViewModel.getTextIP().observe(getViewLifecycleOwner(), IPViewName::setText);
-        IPViewName.setText(R.string.no_wifi);
-        if (Helper.isWifiReady(context)) {
-            IPViewName.setText(Helper.getDefaultWifiName(context));
-            //IPView.setText(Helper.getDefaultWifiName(mainActivity) + " :" + mPreference.getInt("port", 8000));
-        }
         final TextView IPViewNumber = binding.homeFragmentIpNumber;
-        homeViewModel.getTextIP().observe(getViewLifecycleOwner(), IPViewNumber::setText);
         IPViewNumber.setText(R.string.no_wifi);
         if (Helper.isWifiReady(context)) {
-            IPViewNumber.setText(Helper.showIPAddress(context) + ":" + port);
-            //IPView.setText(Helper.getDefaultWifiName(mainActivity) + " :" + mPreference.getInt("port", 8000));
+            IPViewNumber.setText(Helper.showIPAddress(context));
         }
+        homeViewModel.getIPViewNumber().observe(getViewLifecycleOwner(), IPViewNumber::setText);
+
+        final  TextView doublePoint =binding.homeFragmentDoublepoint;
+
+        final TextView IPPort = binding.homeFragmentIpPort;
+        if (Helper.isWifiReady(context)) {
+            IPPort.setText(String.valueOf(port));
+            doublePoint.setText(R.string.double_point);
+        }
+        homeViewModel.getIPPort().observe(getViewLifecycleOwner(), IPPort::setText);
 
         final TextView center1 = binding.homeFragmentDescription1;
-        homeViewModel.getTextCenter1().observe(getViewLifecycleOwner(), center1::setText);
         center1.setText(getString(R.string.home_fragment_desription1));
+        homeViewModel.getTextCenter1().observe(getViewLifecycleOwner(),center1::setText);
 
         return root;
     }

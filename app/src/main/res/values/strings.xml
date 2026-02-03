@@ -22,7 +22,7 @@
     <string name="dialog_title_over_this">over this app</string>
     <string name="dialog_title_configuration">Security</string>
     <string name="close">close</string>
-    <string name="copyright_links"><a href="https://github.com/Klaus-Thaler">About the app on Github.</a>\n<a href="https://liberapay.com/KlausThaler">Donation for this work.</a></string>
+    <string name="copyright_links" translatable="false"><a href="https://github.com/Klaus-Thaler">About the app on Github.</a>\n<a href="https://liberapay.com/KlausThaler">Donation for this work.</a></string>
     <string name="DialogDescriptionmainText">This app can offer a complete backup or one focused on individual directories and file types.\n\nThe data is available via Wi-Fi. Access is password protected\n\nOn Linux systems, the data can be accessed using a daemon script via Curl or Wget.\n\nFurther information is available on Git-Hub.</string>
     <string name="dialogloginname">login:</string>
     <string name="passworteingabe">password:</string>
@@ -75,5 +75,6 @@
     <string name="string">File(s)</string>
     <string name="unassigned">unassigned</string>
     <string name="nothing_selected">nothing selected</string>
+    <string name="double_point" translatable="false">:</string>
 
 </resources>
