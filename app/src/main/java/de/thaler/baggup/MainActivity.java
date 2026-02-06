@@ -29,6 +29,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -37,6 +41,7 @@ import de.thaler.baggup.databinding.ActivityMainBinding;
 import de.thaler.baggup.utils.FileSelektion;
 import de.thaler.baggup.utils.GrantPermissions;
 import de.thaler.baggup.utils.Helper;
+import fi.iki.elonen.NanoHTTPD;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "myLOG Main";
@@ -55,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     public static int LoginLen = 6;
     public static int PasswordLen = 6;
-    public static int defaultPort = 8000;
+    public static int defaultPort = 8443;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -89,12 +94,17 @@ public class MainActivity extends AppCompatActivity {
         mPreference = MainActivity.appContext.getSharedPreferences("MyPref", 0);
 
         // TODO: 02.02.26  nur für tests
-        mPreference.edit().putString("login", "Login33").apply();
-        mPreference.edit().putString("password", "Login33").apply();
+        //mPreference.edit().putString("login", "Login33").apply();
+        //mPreference.edit().putString("password", "Login33").apply();
         // todo end
 
         int port = mPreference.getInt("port", defaultPort);
-        mHttpServer = new httpServer(port);
+        try {
+            mHttpServer = new httpServer(port);
+        } catch (IOException | UnrecoverableKeyException | CertificateException |
+                 KeyStoreException | NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
 
         // search files
         fileSelektion = new FileSelektion(this);
@@ -131,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
                     Helper.showToast(appContext, getString(R.string.backupStoped), 1);
                 } else {
                     try {
-                        mHttpServer.start();
+                        mHttpServer.start(NanoHTTPD.SOCKET_READ_TIMEOUT,false);
                         mHttpServer.determineResult();
                     } catch (IOException e) {
                         Log.e(TAG, "server stert faild" + e);

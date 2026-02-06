@@ -28,10 +28,18 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+
+import javax.net.ssl.KeyManagerFactory;
 
 import de.thaler.baggup.utils.FileSelektion;
 import de.thaler.baggup.utils.customProgress;
@@ -43,13 +51,30 @@ import fi.iki.elonen.NanoHTTPD;
  */
 public class httpServer extends NanoHTTPD {
     private static final String TAG = "myLOG httpServer";
-    public static ArrayList<String> allMimes = new ArrayList<>();
-    public static ArrayList<String> allFiles = new ArrayList<>();
     public static List<File> res = new ArrayList<>();
     private final customProgress progress;
     private final FileSelektion fileSelektion;
-    public httpServer(int port) {
+    public httpServer(int port) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
         super(port);
+
+        // https in nano https: https://www.baeldung.com/nanohttpd
+        // create a keystore file
+        // keytool -genkey -keyalg RSA -alias selfsigned -keystore keystore.jks -storepass password
+        //          -validity 360 -keysize 2048 -ext SAN=DNS:localhost,IP:127.0.0.1  -validity 9999
+        //
+        // change .jbs to .bks
+        // The easier is using program "KeyStore Explorer" -> http://keystore-explorer.org/downloads.html
+        // From Tools - Change KeyStore Type - BKS
+
+        String password = "baggup2026";   // keystore password
+        KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+        InputStream keystoreStream = MainActivity.mainActivity
+                .getApplicationContext().getAssets().open("security/keystore.bks");
+        keystore.load(keystoreStream, password.toCharArray());
+        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        keyManagerFactory.init(keystore, password.toCharArray());
+        makeSecure(NanoHTTPD.makeSSLSocketFactory(keystore, keyManagerFactory), null);
+
         fileSelektion = new FileSelektion(appContext);
         progress = new customProgress(appContext);
     }
@@ -102,7 +127,7 @@ public class httpServer extends NanoHTTPD {
          String validPassword = mPreference.getString("password", "");
 
          if (session.getMethod() == Method.POST) {
-             String requestForm = "";
+             String requestForm;
              try {
                  session.parseBody(new HashMap<>());
                  requestForm = session.getQueryParameterString();
@@ -112,10 +137,8 @@ public class httpServer extends NanoHTTPD {
              }
              // login und passwort anzeigen
              //Log.i(TAG, "POST String: " + requestForm);
-             if (requestForm.split("&")[0].substring(6).equals(validLogin) &&
-                     requestForm.split("&")[1].substring(7).equals(validPassword)) {
-                 return true;
-             }
+             return requestForm.split("&")[0].substring(6).equals(validLogin) &&
+                     requestForm.split("&")[1].substring(7).equals(validPassword);
          }
          return false;
          // TODO: 16.01.26  true nur fuer tests
@@ -125,7 +148,7 @@ public class httpServer extends NanoHTTPD {
      *
      * @param session
      *            The HTTP session
-     * @return
+     * @return Response
      */
      @SuppressLint("ResourceType")
      public Response serve (IHTTPSession session) {

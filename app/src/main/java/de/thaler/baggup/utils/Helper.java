@@ -170,6 +170,32 @@ public class Helper {
         return matcher.matches();
     }
     /**
+     * test the network
+     * @param context context
+     * @return boolean
+     */
+    public static boolean isNetworkConnected(Context context) {
+        ConnectivityManager cm =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+    }
+
+    /**
+     *
+     * @param context Context
+     * @return String
+     */
+    public static String getNetworkType(Context context) {
+        ConnectivityManager cm =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        if (activeNetwork != null) {
+            return activeNetwork.getTypeName();
+        }
+        return null;
+    }
+    /**
      * Get IP address from first non-localhost interface
      * @param useIPv4   true=return ipv4, false=return ipv6
      * @return  address or empty string
