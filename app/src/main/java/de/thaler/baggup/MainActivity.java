@@ -91,8 +91,8 @@ public class MainActivity extends AppCompatActivity {
         mPreference = MainActivity.appContext.getSharedPreferences("MyPref", 0);
 
         // TODO: 02.02.26  nur für tests
-        mPreference.edit().putString("login", "Login33").apply();
-        mPreference.edit().putString("password", "Login33").apply();
+        //mPreference.edit().putString("login", "Login33").apply();
+        //mPreference.edit().putString("password", "Login33").apply();
         // todo end
 
         MimeType = new ArrayList<>();
