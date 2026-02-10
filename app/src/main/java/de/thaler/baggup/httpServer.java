@@ -53,31 +53,33 @@ public class httpServer extends NanoHTTPD {
     private static final String TAG = "myLOG httpServer";
     public static List<File> res = new ArrayList<>();
     private final customProgress progress;
-    public httpServer(int port) {
+    public httpServer(int port, boolean secure) {
         super(port);
 
-        // https in nano https: https://www.baeldung.com/nanohttpd
-        // create a keystore file
-        // keytool -genkey -keyalg RSA -alias selfsigned -keystore keystore.jks -storepass password
-        //          -validity 360 -keysize 2048 -ext SAN=DNS:localhost,IP:127.0.0.1  -validity 9999
-        //
-        // change .jbs to .bks
-        // The easier is using program "KeyStore Explorer" -> http://keystore-explorer.org/downloads.html
-        // From Tools - Change KeyStore Type - BKS
+        if (secure) {
+            // https in nano https: https://www.baeldung.com/nanohttpd
+            // create a keystore file
+            // keytool -genkey -keyalg RSA -alias selfsigned -keystore keystore.jks -storepass password
+            //          -validity 360 -keysize 2048 -ext SAN=DNS:localhost,IP:127.0.0.1  -validity 9999
+            //
+            // change .jbs to .bks
+            // The easier is using program "KeyStore Explorer" -> http://keystore-explorer.org/downloads.html
+            // From Tools - Change KeyStore Type - BKS
 
-        String password = "baggup2026";   // keystore password
-        try {
-            KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-            InputStream keystoreStream = MainActivity.mainActivity
-                    .getApplicationContext().getAssets().open("security/keystore.bks");
-            keystore.load(keystoreStream, password.toCharArray());
-            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-            keyManagerFactory.init(keystore, password.toCharArray());
-            makeSecure(NanoHTTPD.makeSSLSocketFactory(keystore, keyManagerFactory), null);
-        } catch (IOException | KeyStoreException | CertificateException | NoSuchAlgorithmException |
-                 UnrecoverableKeyException e) {
-            Log.e(TAG, "Error: " + e);
-            throw new RuntimeException(e);
+            String password = "baggup2026";   // keystore password
+            try {
+                KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+                InputStream keystoreStream = MainActivity.mainActivity
+                        .getApplicationContext().getAssets().open("security/keystore.bks");
+                keystore.load(keystoreStream, password.toCharArray());
+                KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+                keyManagerFactory.init(keystore, password.toCharArray());
+                makeSecure(NanoHTTPD.makeSSLSocketFactory(keystore, keyManagerFactory), null);
+            } catch (IOException | KeyStoreException | CertificateException | NoSuchAlgorithmException |
+                     UnrecoverableKeyException e) {
+                Log.e(TAG, "Error: " + e);
+                throw new RuntimeException(e);
+            }
         }
 
         progress = new customProgress(appContext);

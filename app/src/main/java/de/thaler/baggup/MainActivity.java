@@ -113,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
 
         // start http
         int port = mPreference.getInt("port", defaultPort);
-        mHttpServer = new httpServer(port);
+        mHttpServer = new httpServer(port, true);
         startHTTPd();
 
         String res = getString(R.string.backupNow)
