@@ -25,6 +25,7 @@
     <string name="WarnNoPasswd">Noch kein Passwort!</string>
     <string name="notificationSave">it\'s save</string>
     <string name="backupNow">Es kann gesichert werden.</string>
+    <string name="are_being_checked">geprüft werden</string>
     <string name="backupStoped">Der Webserver ist angehalten.</string>
     <string name="loginZuKurz">login zu kurz</string>
     <string name="passwortZuKurz">zu kurz mind 1 klein 1 gross 1 sonderzeichen min 4</string>
@@ -58,4 +59,5 @@
     <string name="string">File(s)</string>
     <string name="unassigned">unassigned</string>
     <string name="nothing_selected">Nichts ausgewählt.</string>
+    <string name="todo">TODO</string>
 </resources>

@@ -1,9 +1,10 @@
 package de.thaler.baggup.utils;
 
+import static de.thaler.baggup.MainActivity.mPreference;
 import static de.thaler.baggup.MainActivity.rootFile;
 
 import android.content.Context;
-import android.util.Log;
+import android.widget.TextView;
 
 import androidx.preference.PreferenceManager;
 
@@ -14,11 +15,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import de.thaler.baggup.MainActivity;
+import de.thaler.baggup.R;
+
 public class FileSelektion {
     private static final String TAG = "myLOG FileSelection";
     Context context;
     Map<String, ?> dirs = new HashMap<>();
     Map<String, ?> types = new HashMap<>();
+    TextView textView = MainActivity.mainActivity.findViewById(R.id.customProgressInfo1);;
 
     public FileSelektion(Context context) {
         this.context = context;
@@ -48,7 +53,7 @@ public class FileSelektion {
     public List<File> fileList () {
         List<File> fileList = new ArrayList<>();
         for (String dirs : inDirs()) {                      // file walk durch alle main dirs
-            List<File> files = Helper.walkInDir(context,rootFile + File.separator + dirs);
+            List<File> files = Helper.walkFileTree(context,rootFile + File.separator + dirs);
             for (File f : files) {
                 for (String type : inTypes()) {              // mit mime typen vergleichen
                     if (Objects.equals(Helper.getMimeType(String.valueOf(f)).split("/")[0], type)) {
@@ -58,6 +63,7 @@ public class FileSelektion {
                 }
             }
         }       // Log.d(TAG, "-> fileList " + fileList);
+        mPreference.edit().putInt("filesSize", fileList.size()).apply();
         return fileList;
     }
 }

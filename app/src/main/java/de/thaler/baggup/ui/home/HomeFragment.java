@@ -65,13 +65,6 @@ public class HomeFragment extends Fragment {
 
         return root;
     }
-
-    @SuppressLint("SetTextI18n")
-    @Override
-    public void onResume() {
-        super.onResume();
-    }
-
     @Override
     public void onDestroyView() {
         super.onDestroyView();

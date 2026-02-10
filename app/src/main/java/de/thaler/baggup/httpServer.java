@@ -53,8 +53,7 @@ public class httpServer extends NanoHTTPD {
     private static final String TAG = "myLOG httpServer";
     public static List<File> res = new ArrayList<>();
     private final customProgress progress;
-    private final FileSelektion fileSelektion;
-    public httpServer(int port) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
+    public httpServer(int port) {
         super(port);
 
         // https in nano https: https://www.baeldung.com/nanohttpd
@@ -67,15 +66,20 @@ public class httpServer extends NanoHTTPD {
         // From Tools - Change KeyStore Type - BKS
 
         String password = "baggup2026";   // keystore password
-        KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-        InputStream keystoreStream = MainActivity.mainActivity
-                .getApplicationContext().getAssets().open("security/keystore.bks");
-        keystore.load(keystoreStream, password.toCharArray());
-        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(keystore, password.toCharArray());
-        makeSecure(NanoHTTPD.makeSSLSocketFactory(keystore, keyManagerFactory), null);
+        try {
+            KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+            InputStream keystoreStream = MainActivity.mainActivity
+                    .getApplicationContext().getAssets().open("security/keystore.bks");
+            keystore.load(keystoreStream, password.toCharArray());
+            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            keyManagerFactory.init(keystore, password.toCharArray());
+            makeSecure(NanoHTTPD.makeSSLSocketFactory(keystore, keyManagerFactory), null);
+        } catch (IOException | KeyStoreException | CertificateException | NoSuchAlgorithmException |
+                 UnrecoverableKeyException e) {
+            Log.e(TAG, "Error: " + e);
+            throw new RuntimeException(e);
+        }
 
-        fileSelektion = new FileSelektion(appContext);
         progress = new customProgress(appContext);
     }
 
@@ -83,7 +87,15 @@ public class httpServer extends NanoHTTPD {
      * Starts searching for files based on preselection and save the result in a file, (.../.baggup).
      */
     public void determineResult () {
-        saveResultFileList(fileSelektion.fileList());
+        //Log.i(TAG, "determite");
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                FileSelektion fileSelektion = new FileSelektion(appContext);
+                saveResultFileList(fileSelektion.fileList());
+            }
+        };
+        new Thread(runnable).start();
     }
     /**
      * First, create a log file.
@@ -91,6 +103,7 @@ public class httpServer extends NanoHTTPD {
      *
      * @param res List of all requested files.
      */
+    @SuppressLint("SetTextI18n")
     public void saveResultFileList (List<File> res) {
         StringBuilder fileString = new StringBuilder();
         fileString.append("# loging ").append(new Date()).append("\n")
@@ -104,7 +117,9 @@ public class httpServer extends NanoHTTPD {
             fileString.append(lastMod).append(" ").append(s).append("\n");
         }
         String baggupFile = rootFile + File.separator + baggupFileName;
-        Log.d(TAG, "baggup "+ baggupFile);
+        //Log.i(TAG, "size: " + res.size());
+        //Log.d(TAG, "baggup "+ baggupFile);
+
         try (FileOutputStream fos = new FileOutputStream(baggupFile)) {
             // Convert the string into bytes
             byte[] dataBytes = fileString.toString().getBytes();

@@ -61,10 +61,12 @@ import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.time.LocalDateTime;
@@ -115,8 +117,6 @@ import de.thaler.baggup.R;
  */
 public class Helper {
     private static final String TAG = "myLog Helper.java";
-    public static Handler mBackgroundHandler;
-    public static HandlerThread mBackgroundThread;
     /**
      * <p>it is a toast message</p>
      *     <li> 1 = normal custom</li>
@@ -492,6 +492,38 @@ public class Helper {
     }
 
     /**
+     * With this method, you can explore directories, list files,
+     * and perform tasks such as cleanup or data processing with a high level of control.
+     *
+     * @param context root (start)
+     * @return List
+     */
+    public static List<File> walkFileTree (Context context, String root) {
+        // https://medium.com/@AlexanderObregon/javas-files-walkfiletree-method-explained-6660bebfa626
+        //Log.i(TAG, "in walkFileTree");
+        List<File> FileList = new ArrayList<>();
+        Path startPath = Paths.get(root);
+        try {
+            Files.walkFileTree(startPath, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                    // Handle the file here
+                    //Log.d(TAG, "Visited file: " + file);
+                    FileList.add(file.toFile());
+                    return FileVisitResult.CONTINUE;
+                }
+                @Override
+                public FileVisitResult visitFileFailed(Path file, IOException exc) {
+                    Log.e(TAG,"Error accessing file: " + file);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            Log.e(TAG,"Error traversing directory: " + e.getMessage());
+        }
+        return FileList;
+    }
+    /**
      * <p>Goes through a directory and descends into all subdirectories.</p>
      * <p>https://mkyong.com/java/java-files-walk-examples/</p>
      * @param root
@@ -503,9 +535,10 @@ public class Helper {
         Path dir = Paths.get(root);
         List<File> ret = new ArrayList<>();
         try {
-            Files.walk(dir)
+            Files.walk(dir, new java.nio.file.FileVisitOption[]{})
                     .sorted()
                     .filter(Files::isRegularFile)
+                    .filter(Files::isReadable)
                     .filter(path -> Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS))
                     .forEach(new Consumer<Path>() {
                 @Override
@@ -581,42 +614,6 @@ public class Helper {
         int right = (int) (mMaxSensorSize.right - mMaxSensorSize.centerX() / mDivider);
         int bottom = (int) (mMaxSensorSize.bottom - mMaxSensorSize.centerY() / mDivider);
         return new Rect(left, top, right, bottom);
-    }
-    public  void startBackgroundThread() {
-        mBackgroundThread = new HandlerThread("CameraBackground");
-        mBackgroundThread.start();
-        /* this is to allow the camera operations to run on a separate thread and avoid blocking the UI*/
-        mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
-        /* this is to communicate with the thread*/
-    }
-    public void stopBackgroundThread() {
-        if (mBackgroundThread != null) { return; }
-        mBackgroundThread.quitSafely();
-        try {
-            mBackgroundThread.join();
-            mBackgroundThread = null;
-            mBackgroundHandler = null;
-        } catch (InterruptedException e) {
-            throw new RuntimeException("InterruptedException: " + e);
-        }
-    }
-    public void runMotion() {
-        Runnable myRunnable = new Runnable() {
-            int testByte = 0;
-            public void run() {
-                while (testByte == 10) {
-                    try {
-                        Thread.sleep(1000); // Waits for 1 second (1000 milliseconds)
-                        Log.i(TAG, "try sleep: " + testByte);
-                    } catch (InterruptedException e) {
-                        Log.i(TAG, "InterruptedException " + e);
-                        throw new RuntimeException(e);
-                    }
-                    Log.i(TAG, "testByte: " + testByte);
-                    testByte++;
-                }
-            }
-        };
     }
     public boolean isExternalStorageReadOnly() {
         String extStorageState = Environment.getExternalStorageState();

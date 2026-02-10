@@ -20,41 +20,59 @@
             app:popupTheme="@style/Theme.Baggup.PopupOverlay"
             app:titleTextColor="?android:textColorPrimary" />
 
-        <LinearLayout
+        <TableLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_marginBottom="2sp">
+            <TableRow tools:ignore="UselessParent">
 
-            <TextView
-                android:id="@+id/customProgressInfo1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="60sp"
-                android:textSize="16sp"
-                android:text="@string/customProgress_DataSize" />
-            <TextView
-                android:id="@+id/customProgressTextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="60sp"
-                android:textSize="16sp"
-                android:text="@string/customProgress_noDataTransfer" />
-            <ProgressBar
-                android:id="@+id/customProgressProgressBar"
-                style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:backgroundTint="@color/black_10"
-                android:indeterminate="false"
-                android:indeterminateTintMode="src_over"
-                android:max="100"
-                android:progress="0"
-                android:progressBackgroundTint="@color/black_10" />
+                <ImageView
+                    android:id="@+id/imageView_serverSVG"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="12sp"
+                    android:contentDescription="@string/todo"
+                    app:srcCompat="@drawable/baseline_browser_not_supported_24" />
 
-        </LinearLayout>
+                <TableLayout>
+                    <TableRow>
+                        <TextView
+                            android:layout_column="2"
+                            android:id="@+id/customProgressInfo1"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:textSize="16sp"
+                            android:text="@string/customProgress_DataSize" />
+                    </TableRow>
+                    <TableRow>
+                        <TextView
+                        android:layout_column="2"
+                        android:id="@+id/customProgressTextView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:text="@string/customProgress_noDataTransfer" />
+                    </TableRow>
+                    <TableRow>
+                        <ProgressBar
+                            android:layout_column="1"
+                            android:layout_span="2"
+                            android:id="@+id/customProgressProgressBar"
+                            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:backgroundTint="@color/black_10"
+                            android:indeterminate="false"
+                            android:indeterminateTintMode="src_over"
+                            android:max="100"
+                            android:progress="0"
+                            android:progressBackgroundTint="@color/black_10" />
+                    </TableRow>
+                </TableLayout>
 
-
+            </TableRow>
+        </TableLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
   <include layout="@layout/content_main"/>
@@ -69,7 +87,5 @@
       android:contentDescription="@string/placeholder"
       android:backgroundTint="?colorOnPrimary"
       app:srcCompat="@drawable/baseline_cached_24" />
-
-
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

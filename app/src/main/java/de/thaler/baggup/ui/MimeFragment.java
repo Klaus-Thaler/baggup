@@ -53,7 +53,7 @@ public class MimeFragment extends PreferenceFragmentCompat {
                 }
             }
         }
-        MainActivity.mainActivity.httpResultSize();
+        MainActivity.mainActivity.stopHTTPd();
         return super.onPreferenceTreeClick(preference);
     }
     private PreferenceScreen createPreferenceHierarchy() {

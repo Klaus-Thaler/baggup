@@ -42,7 +42,8 @@ public class FolderFragment extends PreferenceFragmentCompat {
                     Objects.requireNonNull(preference.getSharedPreferences()).edit().putBoolean("dir_" + s, true).apply();
                     CheckBoxPreference toggle = findPreference(("dir_"+s));
                     assert toggle != null;
-                    toggle.setChecked(true);
+                    if (!Objects.equals(s, "Android"))
+                        toggle.setChecked(true);
                 }
             } else {
                 for (String s : AllDirs) {
@@ -53,7 +54,7 @@ public class FolderFragment extends PreferenceFragmentCompat {
                 }
             }
         }
-        MainActivity.mainActivity.httpResultSize();
+        MainActivity.mainActivity.stopHTTPd();
         return super.onPreferenceTreeClick(preference);
     }
     private PreferenceScreen createPreferenceHierarchy() {
@@ -72,6 +73,7 @@ public class FolderFragment extends PreferenceFragmentCompat {
         switchPreferenceCompat.setTitle(R.string.sync_AllDirs);
         inlinePrefCat.addPreference(switchPreferenceCompat);
 
+        //AllDirs.sort(Collections.reverseOrder()); // Sort
         for (String s:AllDirs) {
             CheckBoxPreference togglePref = new CheckBoxPreference(context);
             togglePref.setKey("dir_" + s);

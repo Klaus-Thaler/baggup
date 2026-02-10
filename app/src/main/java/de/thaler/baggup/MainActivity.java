@@ -14,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Menu;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -29,16 +30,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
 import de.thaler.baggup.databinding.ActivityMainBinding;
-import de.thaler.baggup.utils.FileSelektion;
 import de.thaler.baggup.utils.GrantPermissions;
 import de.thaler.baggup.utils.Helper;
 import fi.iki.elonen.NanoHTTPD;
@@ -51,12 +48,12 @@ public class MainActivity extends AppCompatActivity {
     public static List<String> MimeType;
     public static List<String> AllDirs;
     public static String baggupFileName = ".baggup";
-    public httpServer mHttpServer;
+    public static httpServer mHttpServer;
     public static File rootFile = new File("/storage/emulated/0");
     public static SharedPreferences mPreference;
-    public FileSelektion fileSelektion;
+    public static List<File> FileList = new ArrayList<>();
     private AppBarConfiguration mAppBarConfiguration;
-    private FloatingActionButton fab;
+    //public static FloatingActionButton fab;
     private ActivityMainBinding binding;
     public static int LoginLen = 6;
     public static int PasswordLen = 6;
@@ -94,23 +91,9 @@ public class MainActivity extends AppCompatActivity {
         mPreference = MainActivity.appContext.getSharedPreferences("MyPref", 0);
 
         // TODO: 02.02.26  nur für tests
-        //mPreference.edit().putString("login", "Login33").apply();
-        //mPreference.edit().putString("password", "Login33").apply();
+        mPreference.edit().putString("login", "Login33").apply();
+        mPreference.edit().putString("password", "Login33").apply();
         // todo end
-
-        int port = mPreference.getInt("port", defaultPort);
-        try {
-            mHttpServer = new httpServer(port);
-        } catch (IOException | UnrecoverableKeyException | CertificateException |
-                 KeyStoreException | NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-
-        // search files
-        fileSelektion = new FileSelektion(this);
-        Log.d(TAG, "size " + fileSelektion.fileList().size());
-        // check all prefs
-        Log.i(TAG, "getDefaultPref: " + fileSelektion.fileList());
 
         MimeType = new ArrayList<>();
         MimeType.add("image");
@@ -123,35 +106,33 @@ public class MainActivity extends AppCompatActivity {
 
         AllDirs = new ArrayList<>();
         AllDirs.addAll(Helper.listDirNames(Objects.requireNonNull(rootFile.listFiles())));
+        Collections.sort(AllDirs); // sort A-Z
         // TODO: 16.01.26 ordner Android macht Probleme?
         // Android raus, macht Probleme
-        AllDirs.remove("Android");
+        //AllDirs.remove("Android");
 
+        // start http
+        int port = mPreference.getInt("port", defaultPort);
+        mHttpServer = new httpServer(port);
+        startHTTPd();
+
+        String res = getString(R.string.backupNow)
+                + " " + mPreference.getInt("filesSize", 0) + " File(s)";
+        changeTextView(res);
         //
         setSupportActionBar(binding.appBarMain.toolbar);
         // fab floating button
-        fab = binding.appBarMain.fab;
+        FloatingActionButton fab = binding.appBarMain.fab;
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 //web server an und aus
                 if (mHttpServer.isAlive()) {
-                    mHttpServer.stop();
-                    fab.setImageResource(R.drawable.baseline_cached_24);
-                    Helper.showToast(appContext, getString(R.string.backupStoped), 1);
+                    stopHTTPd();
+                    //Helper.showToast(appContext, getString(R.string.backupStoped), 1);
                 } else {
-                    try {
-                        mHttpServer.start(NanoHTTPD.SOCKET_READ_TIMEOUT,false);
-                        mHttpServer.determineResult();
-                    } catch (IOException e) {
-                        Log.e(TAG, "server stert faild" + e);
-                        throw new RuntimeException(e);
-                    }
-                    fab.setImageResource(R.drawable.baseline_do_not_disturb_alt_24);
-                    Helper.showToast(appContext, getString(R.string.backupNow)
-                            + " " + fileSelektion.fileList().size() + " Files", 1);
-
-                    Log.d(TAG, "getDefaultPref: " + fileSelektion.fileList().size());
+                    startHTTPd();
+                    //Helper.showToast(appContext, getString(R.string.backupNow), 1);
                 }
             }
         });
@@ -183,24 +164,12 @@ public class MainActivity extends AppCompatActivity {
 
         if (item.getItemId() == R.id.action_settings2) {
             dialog.DialogPasswd();
-            mHttpServer.stop();
-            fab.setImageResource(R.drawable.baseline_cached_24);
+            stopHTTPd();
         }
         if (item.getItemId() == R.id.action_settings3) {
             dialog.DialogOverThis();
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    /**
-     * refresh also all relevant TextViews
-     */
-    @SuppressLint("SetTextI18n")
-    public void httpResultSize () {
-        // text in der Appbar refresh
-        TextView textView = binding.appBarMain.customProgressInfo1;
-        textView.setText(this.getString(R.string.customProgress_DataSize) +
-                fileSelektion.fileList().size() + " " + this.getString(R.string.string) + ".");
     }
     @Override
     public boolean onSupportNavigateUp() {
@@ -208,135 +177,42 @@ public class MainActivity extends AppCompatActivity {
         return NavigationUI.navigateUp(navController, mAppBarConfiguration)
                 || super.onSupportNavigateUp();
     }
-
-    @Override
-    protected void onPostResume() {
-        super.onPostResume();
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
-    @Override
-    protected void onStop() {
-        super.onStop();
-        //mHttpServer.stop();
-    }
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        //mHttpServer.stop();
     }
     @Override
     protected void onResume() {
         super.onResume();
         appContext = getApplicationContext();
     }
-
-    /*
-    // https://mohitsingh2002.medium.com/background-location-permission-in-android-11-and-above-1ab7399ec861
-    private void checkPermission() {
-        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            // Fine Location permission is granted
-            // Check if current android version >= 11, if >= 11 check for Background Location permission
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                    // Background Location Permission is granted so do your work here
-                } else {
-                    // Ask for Background Location Permission
-                    askPermissionForBackgroundUsage();
-                }
-            }
-        } else {
-            // Fine Location Permission is not granted so ask for permission
-            askForLocationPermission();
-        }
-    }
-
-    private void askForLocationPermission() {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-            new AlertDialog.Builder(this)
-                    .setTitle("Permission Needed!")
-                    .setMessage("Location Permission Needed!")
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            ActivityCompat.requestPermissions(MainActivity.this,
-                                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_CODE);
-                        }
-                    })
-                    .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            // Permission is denied by the user
-                        }
-                    })
-                    .create().show();
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_CODE);
-        }
-    }
-
-    private void askPermissionForBackgroundUsage() {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
-            new AlertDialog.Builder(this)
-                    .setTitle("Permission Needed!")
-                    .setMessage("Background Location Permission Needed!, tap \"Allow all time in the next screen\"")
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            ActivityCompat.requestPermissions(MainActivity.this,
-                                    new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, BACKGROUND_LOCATION_PERMISSION_CODE);
-                        }
-                    })
-                    .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            // User declined for Background Location Permission.
-                        }
-                    })
-                    .create().show();
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, BACKGROUND_LOCATION_PERMISSION_CODE);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == LOCATION_PERMISSION_CODE) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // User granted location permission
-                // Now check if android version >= 11, if >= 11 check for Background Location Permission
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                        // Background Location Permission is granted so do your work here
-                    } else {
-                        // Ask for Background Location Permission
-                        askPermissionForBackgroundUsage();
-                    }
-                }
-            } else {
-                // User denied location permission
-            }
-        } else if (requestCode == BACKGROUND_LOCATION_PERMISSION_CODE) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // User granted for Background Location Permission.
-            } else {
-                // User declined for Background Location Permission.
+    public void startHTTPd() {
+        ImageView serverSVG = binding.appBarMain.imageViewServerSVG;
+        FloatingActionButton fab = binding.appBarMain.fab;
+        if (!mHttpServer.isAlive()) {
+            try {
+                mHttpServer.start(NanoHTTPD.SOCKET_READ_TIMEOUT, true);
+            } catch (IOException e) {
+                Log.e(TAG, "server start failed" + e);
+                throw new RuntimeException(e);
+            } finally {
+                mHttpServer.determineResult();
+                serverSVG.setImageResource(R.drawable.baseline_browser_updated_24);
+                fab.setImageResource(R.drawable.baseline_do_not_disturb_alt_24);
             }
         }
-
     }
-
-     */
+    public void stopHTTPd() {
+        ImageView serverSVG = binding.appBarMain.imageViewServerSVG;
+        FloatingActionButton fab = binding.appBarMain.fab;
+        if (mHttpServer.isAlive()) {
+            mHttpServer.stop();
+            serverSVG.setImageResource(R.drawable.baseline_browser_not_supported_24);
+            fab.setImageResource(R.drawable.baseline_cached_24);
+        }
+    }
+    public void changeTextView (String txt) {
+        TextView textView = binding.appBarMain.customProgressInfo1;
+        textView.setText(txt);
+    }
 }

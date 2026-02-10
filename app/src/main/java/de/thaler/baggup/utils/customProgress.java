@@ -1,9 +1,10 @@
 package de.thaler.baggup.utils;
 
+import static de.thaler.baggup.MainActivity.mPreference;
+
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
-import android.util.Log;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -37,9 +38,13 @@ public class customProgress  {
 
         progressBar.setIndeterminate(true);
 
+        String res = MainActivity.mainActivity.getString(R.string.are_being_checked)
+                + " " + mPreference.getInt("filesSize", 0) + " File(s)";
+        MainActivity.mainActivity.changeTextView(res);
+
         TimerTask task = new TimerTask() {
             public void run() {
-                Log.v(TAG, "time");
+                //Log.v(TAG, "task");
                 progressBar.setIndeterminate(false);
                 textView.setText(MainActivity.mainActivity.getString(R.string.customProgress_noDataTransfer));
             }
