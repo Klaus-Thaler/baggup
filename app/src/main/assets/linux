@@ -1,6 +1,105 @@
-Mit Wget kann auf einem Linux-Rechner die Webseite mit allen Daten übertragen werden.
-Der Befehl lädt in den gleichen Ordner.
+#!/bin/bash
+OLDIFS=$IFS
+IFS= 
+IFS=$'\n'
+IFS=$(echo -en "\n\b")
 
-wget -N -r -X -c --post-data "login=...&passwd=..." 192.168....:8385
+# start the app
+# adb shell /system/bin/am start -n de.thaler.baggup/.MainActivity
 
-Mehr Infos hier: https://man7.org/linux/man-pages/man1/wget.1.html
+
+# bash farben https://checkmk.com/de/linux-wissen/farbige-ausgabe-auf-der-konsole
+NORMAL="\033[0;39m"
+BOLD="\033[1m"
+UNDER="\033[4m"
+BLINK="\033[5m"
+RED="\033[31m"
+GREEN="\033[32m"
+YELLOW="\033[33m"
+BLUE="\033[34m"
+LILA="\033[35m"
+CYAN="\033[36m"
+RE="\033[0m"
+
+login="Login33"
+passwd="Login33"
+
+# !!!
+# curl --insecure https://curl.se/docs/sslcerts.html
+
+HTTP="https"
+PORT="8443"
+
+ADDR="192.168.188.50:$PORT"
+#ADDR="192.168.188.136:$PORT"
+#ADDR="192.168.188.78:$PORT"
+
+#STORAGE="/storage/self/primary"
+STORAGE="/storage/emulated/0"
+BACKUPDIR="$HOME/MobilBackUps"
+BACKUPDIRSTRING="$BACKUPDIR/$ADDR"
+BAGGUPLOADFILE="$BACKUPDIRSTRING$STORAGE/.baggup"
+
+#echo -e " $BACKUPDIR \n $ADDR \n $STORAGE \n $BACKUPDIRSTRING \n $BAGGUPLOADFILE \n http://$ADDR/$STORAGE/.baggup"; exit; 
+
+mkdir -p "$BACKUPDIRSTRING/$STORAGE";
+
+## file liste speichern
+# da der nanohttp von android nicht immer den timestamp liefert, 
+# wird erst auf dem android eine liste mit dem timestamp erstellt und übertragen
+#
+
+# als deamon
+#setsid ./wgetMobil.sh >/dev/null 2>&1 < /dev/null &
+
+ls -la $BAGGUPLOADFILE
+
+
+while true; do
+	# backupload file laden. hier steht, was neu ist. Dient auch um im Mobil einen Kontakt abzubilden
+
+	curl --insecure --request POST --data "login=$login&passwd=$passwd" "$HTTP://$ADDR$STORAGE/.baggup" --output "$BAGGUPLOADFILE"
+
+	while IFS= read line; do 
+		#echo $line
+		# kommentare, die mit # anfangen nicht lesen
+		if [[ ${line:0:1} == '#' ]]; then    # Kommentare auslassen
+			continue;
+		fi 
+		fileName="$(echo $line | cut -d ' ' -f7-)"
+		lastMod=$(echo "$line" | cut -c-34 | date --file=- +"%Y-%m-%d %H:%M:%S")
+		#echo -e "\n #################\n $fileName \t $lastMod \n ############################# \n"
+				
+		# save only new files
+		if [[ ! -f  "$fileName" ]]; then
+			echo -ne "$YELLOW $(basename $fileName) $RE \r"
+			#curl --insecure --request POST --data "login=$login&passwd=$passwd" -o "$BACKUPDIR/$ADDR/$fileName" --create-dirs -C - "HTTP://$ADDR/$fileName"
+			#curl --insecure -u "$login:$passwd" -o "$BACKUPDIR/$ADDR/$fileName" --create-dirs -C - "HTTP://$ADDR/$fileName"
+			# exsample: touch -m -d '2015-01-01 01:01:01.123456789' "$BACKUPDIR/$ADDR/$fileName"
+			
+			# neu ueberschreiben "LC_ALL=C ..." weil ansonsten in deutsch angezeigt wird
+			#echo "$(LC_ALL=C date -r $BACKUPDIR/$ADDR$fileName | LC_ALL=C date --file=- +'%Y-%m-%d %H:%M:%S') - $lastMod"
+			
+			if [[ $(LC_ALL=C date -r $BACKUPDIRSTRING/$fileName | LC_ALL=C date --file=- +'%Y-%m-%d %H:%M:%S') < $lastMod ]]; then
+				echo -e "$GREEN $fileName $RE "
+				curl --insecure --request POST --data "login=$login&passwd=$passwd" -o "$BACKUPDIRSTRING/$fileName" --create-dirs -C - "$HTTP://$ADDR/$fileName"
+				touch -m -d "$lastMod" "$BACKUPDIR/$ADDR/$fileName"
+			fi
+			
+			if [[ ! -s $BACKUPDIRSTRING/$fileName ]]; then   # ist 0. kann bei Abbrüchen passieren
+				echo -ne "                                                               \r"
+				echo -e "$GREEN $(basename $fileName) ist 0, wird neu geholt $RE "
+				curl --insecure --request POST --data "login=$login&passwd=$passwd" -o "$BACKUPDIRSTRING/$fileName" --create-dirs -C - "$HTTP://$ADDR/$fileName"
+				touch -m -d "$lastMod" "$BACKUPDIR/$ADDR/$fileName"
+			fi
+		fi
+		echo -ne "                                                  \r"
+	done < "$BAGGUPLOADFILE"
+
+	echo -ne "                                                 \r"
+	echo "###################  ENDE  ##############################"
+	echo "$(find $BACKUPDIRSTRING -type f | wc -l) Files gesichert."
+	sleep 10
+done
+
+exit 0

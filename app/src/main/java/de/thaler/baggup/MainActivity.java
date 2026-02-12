@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
         Collections.sort(AllDirs); // sort A-Z
         // TODO: 16.01.26 ordner Android macht Probleme?
         // Android raus, macht Probleme
-        //AllDirs.remove("Android");
+        AllDirs.remove("Android");
 
         // start http
         int port = mPreference.getInt("port", defaultPort);

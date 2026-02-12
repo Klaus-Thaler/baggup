@@ -42,8 +42,7 @@ public class FolderFragment extends PreferenceFragmentCompat {
                     Objects.requireNonNull(preference.getSharedPreferences()).edit().putBoolean("dir_" + s, true).apply();
                     CheckBoxPreference toggle = findPreference(("dir_"+s));
                     assert toggle != null;
-                    if (!Objects.equals(s, "Android"))
-                        toggle.setChecked(true);
+                    toggle.setChecked(true);
                 }
             } else {
                 for (String s : AllDirs) {
